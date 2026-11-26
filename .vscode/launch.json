@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Dashboard Server (Node.js)",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/server.js",
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "java",
+      "name": "Run Java Knapsack CLI",
+      "request": "launch",
+      "mainClass": "com.inventory.knapsack.Main"
+    }
+  ]
+}

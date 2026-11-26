@@ -1,0 +1,22 @@
+{
+  "name": "intelligent-inventory-knapsack",
+  "version": "1.0.0",
+  "description": "Capstone Project 2: Intelligent Inventory Management Using Knapsack Optimization (Greedy Fractional vs Dynamic Programming 0/1) with Node.js, Java, and Interactive Dashboard",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test tests/knapsack.test.js",
+    "benchmark": "node src/algorithms/benchmark.js"
+  },
+  "keywords": [
+    "knapsack",
+    "inventory-optimization",
+    "greedy-algorithm",
+    "dynamic-programming",
+    "nodejs",
+    "java",
+    "capstone"
+  ],
+  "license": "MIT"
+}

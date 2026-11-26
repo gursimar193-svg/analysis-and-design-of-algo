@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+
+# Compiled Java bytecode
+java/out/
+*.class
+
+# Logs & OS files
+*.log
+.DS_Store
+Thumbs.db

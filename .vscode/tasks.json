@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Inventory Dashboard (Node.js)",
+      "type": "shell",
+      "command": "npm start",
+      "isBackground": true,
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Run Node.js Test Suite",
+      "type": "shell",
+      "command": "npm test",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Run Scaling Benchmark",
+      "type": "shell",
+      "command": "npm run benchmark"
+    },
+    {
+      "label": "Compile & Run Java Knapsack CLI",
+      "type": "shell",
+      "command": "mkdir -Force java/out; javac -d java/out java/src/com/inventory/knapsack/*.java; java -cp java/out com.inventory.knapsack.Main"
+    },
+    {
+      "label": "Run Java Unit Tests",
+      "type": "shell",
+      "command": "mkdir -Force java/out; javac -d java/out java/src/com/inventory/knapsack/*.java; java -cp java/out com.inventory.knapsack.KnapsackTest"
+    }
+  ]
+}

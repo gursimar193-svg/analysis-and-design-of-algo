@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intelligent Inventory Management | Knapsack Optimization</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-badge">CAPSTONE 2</div>
+        <div>
+          <h1>Intelligent Inventory Management</h1>
+          <p class="subtitle">Knapsack Optimization Dashboard &bull; Greedy (Fractional) vs Dynamic Programming (0/1)</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <div class="engine-group" title="Select backend solver runtime">
+          <span class="engine-label">Engine</span>
+          <div class="segmented" role="group" aria-label="Execution Engine">
+            <button type="button" class="seg-btn active" data-engine="node" id="btnEngineNode">Node.js</button>
+            <button type="button" class="seg-btn" data-engine="java" id="btnEngineJava">Java</button>
+          </div>
+          <span class="status-pill" id="runtimeStatus">Checking runtime...</span>
+        </div>
+
+        <button type="button" class="btn btn-secondary" id="btnExportJson">Export JSON</button>
+        <button type="button" class="btn btn-primary" id="btnOptimize">Run Optimization</button>
+      </div>
+    </header>
+
+    <div id="engineNotice" class="notice-banner hidden"></div>
+
+    <main class="workspace-grid">
+      <!-- LEFT: Inventory & Warehouse Controls -->
+      <section class="panel control-panel">
+        <div class="panel-header">
+          <h2>Warehouse Configuration</h2>
+          <span class="pill" id="skuCountBadge">0 SKUs</span>
+        </div>
+
+        <div class="control-block">
+          <label for="presetSelect">Scenario Preset</label>
+          <select id="presetSelect"></select>
+          <p class="helper-text" id="presetDescription"></p>
+        </div>
+
+        <div class="control-block">
+          <div class="label-row">
+            <label for="capacityInput">Storage Capacity Limit (<span class="unit-label">kg</span>)</label>
+            <span class="capacity-readout" id="capacityReadout">120 kg</span>
+          </div>
+          <div class="capacity-controls">
+            <input type="range" id="capacitySlider" min="0" max="300" step="1" value="120" />
+            <input type="number" id="capacityInput" min="0" max="10000" step="1" value="120" />
+          </div>
+        </div>
+
+        <hr class="divider" />
+
+        <div class="panel-header">
+          <h3>Add Inventory Product</h3>
+          <button type="button" class="btn-link" id="btnAddRandom">+ Random SKU</button>
+        </div>
+
+        <form id="addItemForm" class="add-form">
+          <input type="text" id="itemName" placeholder="Product name (e.g., Fiber Router)" required />
+          <input type="text" id="itemCategory" placeholder="Category (e.g., Networking)" />
+          <div class="form-row-2">
+            <div>
+              <label for="itemWeight" class="mini-label">Weight (kg)</label>
+              <input type="number" id="itemWeight" min="0.1" step="any" placeholder="12" required />
+            </div>
+            <div>
+              <label for="itemProfit" class="mini-label">Profit ($)</label>
+              <input type="number" id="itemProfit" min="0" step="any" placeholder="420" required />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-accent full-width">Add Product to Inventory</button>
+        </form>
+
+        <div class="inventory-table-wrap">
+          <table class="data-table" id="inventoryTable">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th class="num">Weight</th>
+                <th class="num">Profit</th>
+                <th class="num">Ratio ($/kg)</th>
+                <th class="center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryTbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- RIGHT: Optimization Analytics & Comparison -->
+      <section class="analytics-column">
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+          <article class="kpi-card kpi-greedy">
+            <div class="kpi-top">
+              <span class="kpi-title">Greedy (Fractional)</span>
+              <span class="complexity-tag">O(n log n)</span>
+            </div>
+            <div class="kpi-value" id="kpiGreedyProfit">$0.00</div>
+            <div class="kpi-meta" id="kpiGreedyMeta">0 / 0 kg (0%) &bull; 0.00 ms</div>
+          </article>
+
+          <article class="kpi-card kpi-dp">
+            <div class="kpi-top">
+              <span class="kpi-title">Dynamic Prog. (0/1)</span>
+              <span class="complexity-tag">O(n &middot; W)</span>
+            </div>
+            <div class="kpi-value" id="kpiDpProfit">$0.00</div>
+            <div class="kpi-meta" id="kpiDpMeta">0 / 0 kg (0%) &bull; 0.00 ms</div>
+          </article>
+
+          <article class="kpi-card kpi-gap">
+            <div class="kpi-top">
+              <span class="kpi-title">Divisibility Premium</span>
+              <span class="complexity-tag">Fractional - 0/1</span>
+            </div>
+            <div class="kpi-value" id="kpiProfitGap">$0.00</div>
+            <div class="kpi-meta" id="kpiGapMeta">+0.00% over whole-unit limit</div>
+          </article>
+
+          <article class="kpi-card kpi-insight">
+            <div class="kpi-top">
+              <span class="kpi-title">DP vs Naive Greedy 0/1</span>
+              <span class="complexity-tag">0/1 Optimality</span>
+            </div>
+            <div class="kpi-value" id="kpiDpAdvantage">$0.00</div>
+            <div class="kpi-meta" id="kpiAdvantageMeta">Naive 0/1: $0.00</div>
+          </article>
+        </div>
+
+        <div class="insight-banner" id="recommendationBanner">
+          Run optimization to compare Greedy Fractional and Dynamic Programming 0/1 allocations.
+        </div>
+
+        <!-- Tabs -->
+        <div class="panel tabs-panel">
+          <div class="tab-bar" role="tablist">
+            <button type="button" class="tab-btn active" data-tab="comparison">Comparison &amp; Packing</button>
+            <button type="button" class="tab-btn" data-tab="trace">Greedy Trace</button>
+            <button type="button" class="tab-btn" data-tab="dpmatrix">DP Table &amp; Backtrack</button>
+            <button type="button" class="tab-btn" data-tab="benchmark">Performance Benchmark</button>
+          </div>
+
+          <!-- TAB 1: Comparison -->
+          <div class="tab-content active" id="tab-comparison">
+            <div class="charts-row">
+              <div class="chart-card">
+                <div class="chart-header">
+                  <h4>Profit &amp; Capacity Comparison</h4>
+                  <span class="helper-text">Greedy Fractional vs DP 0/1 vs Naive Greedy 0/1</span>
+                </div>
+                <div id="comparisonBarChart" class="svg-container"></div>
+              </div>
+
+              <div class="chart-card">
+                <div class="chart-header">
+                  <h4>Efficiency Map (Profit vs Weight)</h4>
+                  <span class="helper-text">Green = DP Selected &bull; Cyan Ring = Greedy Selected</span>
+                </div>
+                <div id="scatterChart" class="svg-container"></div>
+              </div>
+            </div>
+
+            <div class="allocation-bars">
+              <div class="alloc-row">
+                <div class="alloc-label">
+                  <span>Greedy Fractional Capacity Packing</span>
+                  <strong id="greedyBarLabel">0 / 0 kg</strong>
+                </div>
+                <div class="stacked-bar" id="greedyStackedBar"></div>
+              </div>
+              <div class="alloc-row">
+                <div class="alloc-label">
+                  <span>DP 0/1 Whole-Unit Capacity Packing</span>
+                  <strong id="dpBarLabel">0 / 0 kg</strong>
+                </div>
+                <div class="stacked-bar" id="dpStackedBar"></div>
+              </div>
+            </div>
+
+            <h4 class="section-subtitle">Product-Level Selection Matrix</h4>
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>SKU / Product</th>
+                    <th class="num">Weight</th>
+                    <th class="num">Profit</th>
+                    <th class="num">Ratio</th>
+                    <th class="center">Greedy (Fractional)</th>
+                    <th class="num">Greedy Profit</th>
+                    <th class="center">DP (0/1)</th>
+                    <th class="num">DP Profit</th>
+                  </tr>
+                </thead>
+                <tbody id="comparisonTbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB 2: Greedy Trace -->
+          <div class="tab-content" id="tab-trace">
+            <div class="tab-intro">
+              <strong>Greedy Strategy:</strong> Products are sorted in descending order of profit-to-weight ratio
+              (<code>profit / weight</code>) in <code>O(n log n)</code> time, taking whole units while space remains and slicing the boundary item if capacity allows.
+            </div>
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th class="center">Step</th>
+                    <th>Product</th>
+                    <th class="num">Ratio ($/kg)</th>
+                    <th class="center">Decision</th>
+                    <th class="num">Fraction</th>
+                    <th class="num">Remaining Cap.</th>
+                  </tr>
+                </thead>
+                <tbody id="traceTbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB 3: DP Table -->
+          <div class="tab-content" id="tab-dpmatrix">
+            <div class="tab-intro" id="dpMatrixSummary">
+              <strong>Dynamic Programming State:</strong> <code>dp[i][w] = max(dp[i-1][w], dp[i-1][w - w_i] + p_i)</code>.
+              Highlighted cells show the optimal backtracking path from <code>dp[n][W]</code> back to <code>dp[0][0]</code>.
+            </div>
+            <div class="dp-matrix-wrap" id="dpMatrixContainer"></div>
+          </div>
+
+          <!-- TAB 4: Benchmark -->
+          <div class="tab-content" id="tab-benchmark">
+            <div class="benchmark-header">
+              <div>
+                <h4>Empirical Complexity Scaling (Greedy vs DP)</h4>
+                <p class="helper-text">Runs live multi-iteration benchmarks across increasing product counts (N = 10 to 500) and capacities.</p>
+              </div>
+              <button type="button" class="btn btn-primary" id="btnRunBenchmark">Run Scaling Benchmark</button>
+            </div>
+            <div id="benchmarkChart" class="svg-container tall"></div>
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th class="num">Items (N)</th>
+                    <th class="num">Capacity (W)</th>
+                    <th class="num">Greedy Time (ms)</th>
+                    <th class="num">DP Time (ms)</th>
+                    <th class="num">DP / Greedy Ratio</th>
+                    <th class="num">Greedy Profit</th>
+                    <th class="num">DP Profit</th>
+                  </tr>
+                </thead>
+                <tbody id="benchmarkTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
